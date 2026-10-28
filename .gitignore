@@ -1,0 +1,6 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Generated country block lists (download them with geo_download.py)
+*.txt
