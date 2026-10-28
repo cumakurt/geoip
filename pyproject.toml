@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geo-download"
+dynamic = ["version"]
+description = "Download a country's IP blocks as aggregated CIDR subnets"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Cuma Kurt", email = "cumakurt@gmail.com" }]
+keywords = ["ip", "geoip", "cidr", "firewall", "ipset", "nftables", "subnet"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: System Administrators",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Topic :: System :: Networking :: Firewalls",
+  "Topic :: System :: Systems Administration",
+  "Topic :: Utilities",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/cumakurt/geoip"
+Source = "https://github.com/cumakurt/geoip"
+Issues = "https://github.com/cumakurt/geoip/issues"
+
+[project.scripts]
+geo-download = "geo_download:main"
+
+[tool.setuptools]
+py-modules = ["geo_download"]
+
+[tool.setuptools.dynamic]
+version = { attr = "geo_download.__version__" }
+
+[tool.ruff]
+target-version = "py38"
+line-length = 110
+src = ["."]
+
+[tool.ruff.lint]
+# Pinned so a local user-level ruff configuration cannot change the result.
+select = ["E4", "E7", "E9", "F", "SIM", "RUF"]

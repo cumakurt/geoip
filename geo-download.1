@@ -1,0 +1,181 @@
+.TH GEO-DOWNLOAD 1 "2026-10-28" "geo-download 1.2.0" "User Commands"
+.SH NAME
+geo-download \- download a country's IP blocks as aggregated CIDR subnets
+.SH SYNOPSIS
+.B geo-download
+[\fIOPTIONS\fR] \fICOUNTRY\fR...
+.br
+.B geo-download
+\fB\-\-check\fR \fIPATH\fR
+.br
+.B geo-download
+\fB\-\-completion\fR {\fBbash\fR|\fBzsh\fR}
+.SH DESCRIPTION
+.B geo-download
+fetches the IP address blocks registered to one or more countries, merges
+overlapping and adjacent ranges into the smallest possible set of CIDR
+subnets and writes the result to a text file with one subnet per line.
+.PP
+Two public data sources are used: \fIipverse/rir-ip\fR (derived from RIR
+delegation files) by default, with \fIipdeny.com\fR as a fallback.
+.PP
+Human-readable messages, warnings and the progress bar are written to
+standard error. Standard output carries only the generated list, and only
+when \fB\-\-stdout\fR is given.
+.SH OPTIONS
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fIPATH\fR
+Write the list to \fIPATH\fR instead of \fI<country>.txt\fR. Valid for a single
+country only.
+.TP
+\fB\-\-stdout\fR
+Write the rendered list to standard output instead of a file. Valid for a
+single country only.
+.TP
+\fB\-\-family\fR {\fB4\fR|\fB6\fR|\fBboth\fR}
+Address family to download. Default: \fB4\fR.
+.TP
+\fB\-\-ipv6\fR
+Alias for \fB\-\-family both\fR.
+.TP
+\fB\-\-source\fR {\fBauto\fR|\fBipverse\fR|\fBipdeny\fR}
+Data source. Default: \fBauto\fR, which tries \fBipverse\fR first.
+.TP
+\fB\-\-timeout\fR \fISECONDS\fR
+Socket timeout per request. Default: 30.
+.TP
+\fB\-\-format\fR {\fBplain\fR|\fBipset\fR|\fBnft\fR|\fBnginx\fR|\fBjson\fR}
+Output format. Default: \fBplain\fR.
+.RS
+.TP
+\fBplain\fR
+One CIDR subnet per line.
+.TP
+\fBipset\fR
+\fBadd \fISET\fR \fISUBNET\fR\fR lines, suitable for \fBipset restore\fR.
+.TP
+\fBnft\fR
+A brace-delimited nftables element list.
+.TP
+\fBnginx\fR
+\fBallow \fISUBNET\fR;\fR lines.
+.TP
+\fBjson\fR
+A JSON object with \fBipv4\fR, \fBipv6\fR, counters and the total address
+count.
+.RE
+.TP
+\fB\-\-set\-name\fR \fINAME\fR
+Set name used by \fB\-\-format ipset\fR. Default: the lowercase country code.
+.TP
+\fB\-\-with\-header\fR
+Prepend comment lines describing the generator version, country, source and
+generation time. Not supported by \fBjson\fR.
+.TP
+\fB\-\-exclude\fR \fICIDR\fR
+Remove a network from the result. May be repeated.
+.TP
+\fB\-\-exclude\-file\fR \fIPATH\fR
+Read networks to remove from \fIPATH\fR, one per line. Blank lines and
+\fB#\fR comments are ignored.
+.TP
+\fB\-\-min\-prefix\fR \fIN\fR
+Drop networks broader than \fI/N\fR.
+.TP
+\fB\-\-max\-prefix\fR \fIN\fR
+Drop networks smaller than \fI/N\fR.
+.TP
+\fB\-\-if\-changed\fR
+Leave the output file untouched when its content is already identical.
+.TP
+\fB\-\-exit\-code\-changed\fR
+With \fB\-\-if\-changed\fR, exit with status 3 when nothing was written.
+.TP
+\fB\-\-diff\fR \fIPATH\fR
+Print the networks added or removed compared to \fIPATH\fR before writing.
+.TP
+\fB\-\-check\fR \fIPATH\fR
+Validate an existing block list without accessing the network. Reports
+unparsable lines, duplicates and overlapping networks; exits non-zero when
+problems are found.
+.TP
+\fB\-\-cache\-dir\fR \fIPATH\fR
+Enable an HTTP cache in \fIPATH\fR. Requests are revalidated with
+\fBETag\fR/\fBLast\-Modified\fR headers, so unchanged upstream files are not
+transferred again.
+.TP
+\fB\-\-completion\fR {\fBbash\fR|\fBzsh\fR}
+Print a shell completion script to standard output and exit.
+.TP
+\fB\-\-no\-progress\fR
+Disable the progress bar. It is disabled automatically when standard error is
+not a terminal.
+.TP
+\fB\-\-quiet\fR
+Suppress informational output. Errors are still reported.
+.TP
+\fB\-\-version\fR
+Print the version and exit.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print usage information and exit.
+.SH EXIT STATUS
+.TP
+.B 0
+Success.
+.TP
+.B 1
+Download, filtering or write failure, or \fB\-\-check\fR found problems.
+.TP
+.B 2
+Invalid command line arguments.
+.TP
+.B 3
+\fB\-\-if\-changed\fR was used with \fB\-\-exit\-code\-changed\fR and the file was
+already up to date.
+.TP
+.B 130
+Interrupted by SIGINT.
+.SH ENVIRONMENT
+.TP
+.B NO_COLOR
+Any non-empty value disables ANSI colors.
+.TP
+.B TERM
+\fBTERM=dumb\fR disables ANSI colors.
+.TP
+.B HTTPS_PROXY\fR, \fBHTTP_PROXY\fR, \fBNO_PROXY
+Honored by the underlying \fBurllib\fR implementation.
+.SH EXAMPLES
+Write the Turkish IPv4 blocks to \fItr.txt\fR:
+.PP
+.RS
+geo-download tr
+.RE
+.PP
+Refresh daily from cron and only reload the firewall when the list changed:
+.PP
+.RS
+17 4 * * * cd /srv/geoip && geo-download tr --quiet --if-changed --exit-code-changed || nft \-f apply.nft
+.RE
+.PP
+Feed the Turkish blocks directly into an ipset:
+.PP
+.RS
+geo-download tr --format ipset --set\-name tr4 --stdout | ipset restore \-exist
+.RE
+.SH LIMITATIONS
+The generated list reflects registry delegations, not physical location.
+Anycast, VPN, satellite and mobile roaming traffic will not match
+expectations, and delegation data lags real-world reassignment.
+.PP
+Set-oriented formats (\fBipset\fR, \fBnft\fR) are single-family in practice;
+run them once per address family when both families are needed.
+.SH SEE ALSO
+.BR ipset (8),
+.BR nft (8),
+.BR iptables (8)
+.SH AUTHOR
+Cuma Kurt <cumakurt@gmail.com>
+.SH LICENSE
+GPL-3.0-or-later. This program comes with ABSOLUTELY NO WARRANTY.
